@@ -1,5 +1,6 @@
 package Internal
 
+import "gopurs/output/gopurs_runtime"
 func Map_(f func(interface{}) interface{}, a func(interface{}) interface{}, _ interface{}) interface{} {
 	return f(a(nil))
 }
@@ -43,21 +44,44 @@ func NewImpl(val interface{}, _ interface{}) interface{} {
 }
 
 func Read(ref interface{}, _ interface{}) interface{} {
-	ptr := ref.(*interface{})
+	var ptr *interface{}
+	if val, ok := ref.(gopurs_runtime.Value); ok {
+		ptr = val.PtrVal().(*interface{})
+	} else {
+		ptr = ref.(*interface{})
+	}
 	return *ptr
 }
 
 func ModifyImpl(f func(interface{}) interface{}, ref interface{}, _ interface{}) interface{} {
-	ptr := ref.(*interface{})
+	var ptr *interface{}
+	if val, ok := ref.(gopurs_runtime.Value); ok {
+		ptr = val.PtrVal().(*interface{})
+	} else {
+		ptr = ref.(*interface{})
+	}
+	
 	t := f(*ptr)
 
-	dict := t.(map[string]interface{})
-	*ptr = dict["state"]
-	return dict["value"]
+	switch val := t.(type) {
+	case map[string]interface{}:
+		*ptr = val["state"]
+		return val["value"]
+	case gopurs_runtime.Value:
+		*ptr = gopurs_runtime.RecordGet(val, "state")
+		return gopurs_runtime.RecordGet(val, "value")
+	default:
+		panic("ModifyImpl: expected map[string]interface{} or gopurs_runtime.Value")
+	}
 }
 
 func Write(a interface{}, ref interface{}, _ interface{}) interface{} {
-	ptr := ref.(*interface{})
+	var ptr *interface{}
+	if val, ok := ref.(gopurs_runtime.Value); ok {
+		ptr = val.PtrVal().(*interface{})
+	} else {
+		ptr = ref.(*interface{})
+	}
 	*ptr = a
 	return a
 }
