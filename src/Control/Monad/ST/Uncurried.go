@@ -1,42 +1,65 @@
 package Control_Monad_ST_Uncurried
 
-func MkSTFn1(fn func(any) any) any {
-	return func(a any) any { return fn(a) }
+import "gopurs/output/gopurs_runtime"
+
+// STFn values are ordinary gopurs_runtime.Value functions; the foreign bridge
+// passes them without adapters, so runSTFn{N} applies them directly.
+
+func MkSTFn1(fn gopurs_runtime.Value) gopurs_runtime.Value {
+	return fn
 }
-func MkSTFn2(fn func(any) func(any) any) any {
-	return func(a any, b any) any { return fn(a)(b) }
+func MkSTFn2(fn gopurs_runtime.Value) gopurs_runtime.Value {
+	return fn
 }
-func MkSTFn3(fn func(any) func(any) func(any) any) any {
-	return func(a any, b any, c any) any { return fn(a)(b)(c) }
+func MkSTFn3(fn gopurs_runtime.Value) gopurs_runtime.Value {
+	return fn
 }
-func MkSTFn4(fn func(any) func(any) func(any) func(any) any) any {
-	return func(a any, b any, c any, d any) any { return fn(a)(b)(c)(d) }
+func MkSTFn4(fn gopurs_runtime.Value) gopurs_runtime.Value {
+	return fn
 }
-func MkSTFn5(fn func(any) func(any) func(any) func(any) func(any) any) any {
-	return func(a any, b any, c any, d any, e any) any { return fn(a)(b)(c)(d)(e) }
+func MkSTFn5(fn gopurs_runtime.Value) gopurs_runtime.Value {
+	return fn
 }
-func MkSTFn6(fn func(any) func(any) func(any) func(any) func(any) func(any) any) any {
-	return func(a any, b any, c any, d any, e any, f any) any { return fn(a)(b)(c)(d)(e)(f) }
+func MkSTFn6(fn gopurs_runtime.Value) gopurs_runtime.Value {
+	return fn
 }
-func MkSTFn7(fn func(any) func(any) func(any) func(any) func(any) func(any) func(any) any) any {
-	return func(a any, b any, c any, d any, e any, f any, g any) any { return fn(a)(b)(c)(d)(e)(f)(g) }
+func MkSTFn7(fn gopurs_runtime.Value) gopurs_runtime.Value {
+	return fn
 }
-func MkSTFn8(fn func(any) func(any) func(any) func(any) func(any) func(any) func(any) func(any) any) any {
-	return func(a any, b any, c any, d any, e any, f any, g any, h any) any { return fn(a)(b)(c)(d)(e)(f)(g)(h) }
+func MkSTFn8(fn gopurs_runtime.Value) gopurs_runtime.Value {
+	return fn
 }
-func MkSTFn9(fn func(any) func(any) func(any) func(any) func(any) func(any) func(any) func(any) func(any) any) any {
-	return func(a any, b any, c any, d any, e any, f any, g any, h any, i any) any { return fn(a)(b)(c)(d)(e)(f)(g)(h)(i) }
+func MkSTFn9(fn gopurs_runtime.Value) gopurs_runtime.Value {
+	return fn
 }
-// func MkSTFn10(fn func(any) func(any) func(any) func(any) func(any) func(any) func(any) func(any) func(any) func(any) any) any {
-	// return func any { return fn(a)(b)(c)(d)(e)(f)(g)(h)(i)(j) }
-// }
-func RunSTFn1(fn func(any) any, a any, _ interface{}) any { return fn(a) }
-func RunSTFn2(fn func(any, any) any, a any, b any, _ interface{}) any { return fn(a, b) }
-func RunSTFn3(fn func(any, any, any) any, a any, b any, c any, _ interface{}) any { return fn(a, b, c) }
-func RunSTFn4(fn func(any, any, any, any) any, a any, b any, c any, d any, _ interface{}) any { return fn(a, b, c, d) }
-func RunSTFn5(fn func(any, any, any, any, any) any, a any, b any, c any, d any, e any, _ interface{}) any { return fn(a, b, c, d, e) }
-func RunSTFn6(fn func(any, any, any, any, any, any) any, a any, b any, c any, d any, e any, f any, _ interface{}) any { return fn(a, b, c, d, e, f) }
-func RunSTFn7(fn func(any, any, any, any, any, any, any) any, a any, b any, c any, d any, e any, f any, g any, _ interface{}) any { return fn(a, b, c, d, e, f, g) }
-func RunSTFn8(fn func(any, any, any, any, any, any, any, any) any, a any, b any, c any, d any, e any, f any, g any, h any, _ interface{}) any { return fn(a, b, c, d, e, f, g, h) }
-func RunSTFn9(fn func(any, any, any, any, any, any, any, any, any) any, a any, b any, c any, d any, e any, f any, g any, h any, i any, _ interface{}) any { return fn(a, b, c, d, e, f, g, h, i) }
-// func RunSTFn10(fn any, a any, b any, c any, d any, e any, f any, g any, h any, i any, j any, _ interface{}) any { return fn.(func(any, any, any, any, any, any, any, any, any, any) any)(a, b, c, d, e, f, g, h, i, j) }
+
+func RunSTFn1(fn gopurs_runtime.Value, a gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
+	return gopurs_runtime.Apply(fn, a)
+}
+func RunSTFn2(fn gopurs_runtime.Value, a gopurs_runtime.Value, b gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
+	return gopurs_runtime.Apply2(fn, a, b)
+}
+func RunSTFn3(fn gopurs_runtime.Value, a gopurs_runtime.Value, b gopurs_runtime.Value, c gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
+	return gopurs_runtime.Apply3(fn, a, b, c)
+}
+func RunSTFn4(fn gopurs_runtime.Value, a gopurs_runtime.Value, b gopurs_runtime.Value, c gopurs_runtime.Value, d gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
+	return gopurs_runtime.Apply4(fn, a, b, c, d)
+}
+func RunSTFn5(fn gopurs_runtime.Value, a gopurs_runtime.Value, b gopurs_runtime.Value, c gopurs_runtime.Value, d gopurs_runtime.Value, e gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
+	return gopurs_runtime.Apply5(fn, a, b, c, d, e)
+}
+func RunSTFn6(fn gopurs_runtime.Value, a gopurs_runtime.Value, b gopurs_runtime.Value, c gopurs_runtime.Value, d gopurs_runtime.Value, e gopurs_runtime.Value, f gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
+	return gopurs_runtime.Apply6(fn, a, b, c, d, e, f)
+}
+func RunSTFn7(fn gopurs_runtime.Value, a gopurs_runtime.Value, b gopurs_runtime.Value, c gopurs_runtime.Value, d gopurs_runtime.Value, e gopurs_runtime.Value, f gopurs_runtime.Value, g gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
+	return gopurs_runtime.Apply7(fn, a, b, c, d, e, f, g)
+}
+func RunSTFn8(fn gopurs_runtime.Value, a gopurs_runtime.Value, b gopurs_runtime.Value, c gopurs_runtime.Value, d gopurs_runtime.Value, e gopurs_runtime.Value, f gopurs_runtime.Value, g gopurs_runtime.Value, h gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
+	return gopurs_runtime.Apply8(fn, a, b, c, d, e, f, g, h)
+}
+func RunSTFn9(fn gopurs_runtime.Value, a gopurs_runtime.Value, b gopurs_runtime.Value, c gopurs_runtime.Value, d gopurs_runtime.Value, e gopurs_runtime.Value, f gopurs_runtime.Value, g gopurs_runtime.Value, h gopurs_runtime.Value, i gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
+	return gopurs_runtime.Apply9(fn, a, b, c, d, e, f, g, h, i)
+}
+
+// STFn10 and runSTFn10 are not implemented in this runtime; the bridge keeps
+// its not-implemented fallback for them.

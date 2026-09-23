@@ -1,87 +1,67 @@
 package Internal
 
 import "gopurs/output/gopurs_runtime"
-func Map_(f func(interface{}) interface{}, a func(interface{}) interface{}, _ interface{}) interface{} {
-	return f(a(nil))
+
+// The ST primitives operate on gopurs_runtime.Value functions directly. The
+// foreign bridge passes such arguments through without building any-adapters
+// or boxing, which matters for the monadic steps of generated ST loops.
+
+var unit = gopurs_runtime.Value{}
+
+func Map_(f gopurs_runtime.Value, a gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
+	return gopurs_runtime.Apply(f, gopurs_runtime.Apply(a, unit))
 }
 
-func Pure_(a interface{}, _ interface{}) interface{} {
+func Pure_(a gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
 	return a
 }
 
-func Bind_(a func(interface{}) interface{}, f func(interface{}) func(interface{}) interface{}, _ interface{}) interface{} {
-	return f(a(nil))(nil)
+func Bind_(a gopurs_runtime.Value, f gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
+	return gopurs_runtime.Apply(gopurs_runtime.Apply(f, gopurs_runtime.Apply(a, unit)), unit)
 }
 
-func Run(f func(interface{}) interface{}) interface{} {
-	return f(nil)
+func Run(f gopurs_runtime.Value) gopurs_runtime.Value {
+	return gopurs_runtime.Apply(f, unit)
 }
 
-func While(f func() bool, a func(interface{}) interface{}, _ interface{}) interface{} {
-	for f() {
-		a(nil)
+func While(f gopurs_runtime.Value, a gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
+	for gopurs_runtime.Apply(f, unit).BoolVal() {
+		gopurs_runtime.Apply(a, unit)
 	}
-	return nil
+	return unit
 }
 
-func ForImpl(lo int64, hi int64, f func(int64) func(interface{}) interface{}, _ interface{}) interface{} {
+func ForImpl(lo int64, hi int64, f gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
 	for i := lo; i < hi; i++ {
-		f(i)(nil)
+		gopurs_runtime.Apply(gopurs_runtime.Apply(f, gopurs_runtime.Int(i)), unit)
 	}
-	return nil
+	return unit
 }
 
-func Foreach(as []interface{}, f func(interface{}) func(interface{}) interface{}, _ interface{}) interface{} {
-	for _, item := range as {
-		f(item)(nil)
+func Foreach(as gopurs_runtime.Value, f gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
+	for _, item := range *(*[]gopurs_runtime.Value)(as.UnsafePtr) {
+		gopurs_runtime.Apply(gopurs_runtime.Apply(f, item), unit)
 	}
-	return nil
+	return unit
 }
 
-func NewImpl(val interface{}, _ interface{}) interface{} {
-	v := val
-	return &v
+func NewImpl(val gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
+	v := any(val)
+	return gopurs_runtime.Box(&v)
 }
 
-func Read(ref interface{}, _ interface{}) interface{} {
-	var ptr *interface{}
-	if val, ok := ref.(gopurs_runtime.Value); ok {
-		ptr = val.PtrVal().(*interface{})
-	} else {
-		ptr = ref.(*interface{})
-	}
-	return *ptr
+func Read(ref gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
+	return gopurs_runtime.AnyToValue(*ref.PtrVal().(*interface{}))
 }
 
-func ModifyImpl(f func(interface{}) interface{}, ref interface{}, _ interface{}) interface{} {
-	var ptr *interface{}
-	if val, ok := ref.(gopurs_runtime.Value); ok {
-		ptr = val.PtrVal().(*interface{})
-	} else {
-		ptr = ref.(*interface{})
-	}
-	
-	t := f(*ptr)
-
-	switch val := t.(type) {
-	case map[string]interface{}:
-		*ptr = val["state"]
-		return val["value"]
-	case gopurs_runtime.Value:
-		*ptr = gopurs_runtime.RecordGet(val, "state")
-		return gopurs_runtime.RecordGet(val, "value")
-	default:
-		panic("ModifyImpl: expected map[string]interface{} or gopurs_runtime.Value")
-	}
+func ModifyImpl(f gopurs_runtime.Value, ref gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
+	ptr := ref.PtrVal().(*interface{})
+	updated := gopurs_runtime.Apply(f, gopurs_runtime.AnyToValue(*ptr))
+	*ptr = gopurs_runtime.RecordGet(updated, "state")
+	return gopurs_runtime.RecordGet(updated, "value")
 }
 
-func Write(a interface{}, ref interface{}, _ interface{}) interface{} {
-	var ptr *interface{}
-	if val, ok := ref.(gopurs_runtime.Value); ok {
-		ptr = val.PtrVal().(*interface{})
-	} else {
-		ptr = ref.(*interface{})
-	}
-	*ptr = a
+func Write(a gopurs_runtime.Value, ref gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
+	*ref.PtrVal().(*interface{}) = a
 	return a
 }
