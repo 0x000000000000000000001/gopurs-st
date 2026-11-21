@@ -46,22 +46,19 @@ func Foreach(as gopurs_runtime.Value, f gopurs_runtime.Value, _ gopurs_runtime.V
 }
 
 func NewImpl(val gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
-	v := any(val)
-	return gopurs_runtime.Box(&v)
+	return gopurs_runtime.NewSTRef(val)
 }
 
 func Read(ref gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
-	return gopurs_runtime.AnyToValue(*ref.PtrVal().(*interface{}))
+	return gopurs_runtime.ReadSTRef(ref)
 }
 
 func ModifyImpl(f gopurs_runtime.Value, ref gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
-	ptr := ref.PtrVal().(*interface{})
-	updated := gopurs_runtime.Apply(f, gopurs_runtime.AnyToValue(*ptr))
-	*ptr = gopurs_runtime.RecordGet(updated, "state")
+	updated := gopurs_runtime.Apply(f, gopurs_runtime.ReadSTRef(ref))
+	gopurs_runtime.WriteSTRef(ref, gopurs_runtime.RecordGet(updated, "state"))
 	return gopurs_runtime.RecordGet(updated, "value")
 }
 
 func Write(a gopurs_runtime.Value, ref gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
-	*ref.PtrVal().(*interface{}) = a
-	return a
+	return gopurs_runtime.WriteSTRef(ref, a)
 }
