@@ -39,7 +39,13 @@ func ForImpl(lo int64, hi int64, f gopurs_runtime.Value, _ gopurs_runtime.Value)
 }
 
 func Foreach(as gopurs_runtime.Value, f gopurs_runtime.Value, _ gopurs_runtime.Value) gopurs_runtime.Value {
-	for _, item := range *(*[]gopurs_runtime.Value)(as.UnsafePtr) {
+	if as.Type == gopurs_runtime.TypeIntArray {
+		for _, item := range *(*[]int64)(as.UnsafePtr) {
+			gopurs_runtime.Apply(gopurs_runtime.Apply(f, gopurs_runtime.Int(item)), unit)
+		}
+		return unit
+	}
+	for _, item := range gopurs_runtime.ArrayValues(as) {
 		gopurs_runtime.Apply(gopurs_runtime.Apply(f, item), unit)
 	}
 	return unit
